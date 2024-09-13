@@ -1,0 +1,69 @@
+{
+  "name": "insert-this",
+  "displayName": "Insert this",
+  "description": "Insert file as import statement into current opened file.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "insert-this.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "insert-this.insertThisFile",
+        "title": "Insert this file"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "insert-this.insertThisFile",
+          "when": "false"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "insert-this.insertThisFile"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.7",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.93.0",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "copy-webpack-plugin": "^12.0.2",
+    "eslint": "^9.9.1",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@swc/core": "^1.7.26",
+    "@swc/wasm": "^1.7.26"
+  }
+}
