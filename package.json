@@ -9,7 +9,12 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -63,7 +68,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "@swc/core": "^1.7.26",
-    "@swc/wasm": "^1.7.26"
+    "@swc/wasm": "^1.7.26",
+    "strip-ansi": "^7.1.0"
   }
 }

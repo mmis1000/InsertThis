@@ -1,12 +1,13 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
+		"module": "ESNext",
 		"target": "ES2022",
 		"lib": [
 			"ES2022"
 		],
 		"sourceMap": true,
 		"rootDir": "src",
+		"moduleResolution": "Bundler",
 		"strict": true   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
