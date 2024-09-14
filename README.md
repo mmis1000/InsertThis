@@ -45,4 +45,8 @@ Insert don't work if file has syntax error on location other than cursor or drag
 
 Initial publish
 
+### 0.0.2
+
+Add tab stop 0 to snippet string so tab won't delete selection
+
 **Enjoy!**
