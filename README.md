@@ -1,71 +1,46 @@
-# insert-this README
+# Insert this (WIP)
 
-This is the README for your extension "insert-this". After writing up a brief description, we recommend including the following sections.
+This is a extension that help you insert image resource into react project with ease
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Insert image with context menu
 
-For example if there is an image subfolder under your extension project workspace:
+<video src="https://github.com/user-attachments/assets/cdd2408e-1c97-4861-b40a-94489a6bbd5a" title="Insert image with context menu"></video>
 
-\!\[feature X\]\(images/feature-x.png\)
+### Insert image with drag
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+<video src="https://github.com/user-attachments/assets/06545098-868e-4649-b57e-39c2f68a3f62" title="Insert image with drag"></video>
+
+### Insert variable with drag and drop
+
+<video src="https://github.com/user-attachments/assets/0769d02e-559c-446b-9668-1aeac62b5622" title="Insert variable with drag and drop"></video>
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+WIP
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+WIP
+
+<!-- Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
 For example:
 
 This extension contributes the following settings:
 
 * `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `myExtension.thing`: Set to `blah` to do something. -->
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Insert don't work if file has syntax error on location other than cursor or drag target
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+Initial publish
 
 **Enjoy!**

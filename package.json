@@ -6,6 +6,10 @@
   "engines": {
     "vscode": "^1.93.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmis1000/InsertThis.git"
+  },
   "categories": [
     "Other"
   ],
