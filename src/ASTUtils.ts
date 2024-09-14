@@ -211,7 +211,7 @@ export const getImportInsertPosAndName = (parseRes: ParseResult, defaultName: st
       identifierEnd: [0, IDENTIFIER_OFFSET + finalName.length],
       name: finalName,
       content: `import ${finalName} from ${JSON.stringify(filePath)}\n`,
-      snippet: new vscode.SnippetString().appendText('import ').appendPlaceholder(finalName, 1).appendText(` from ${JSON.stringify(filePath)}\n`)
+      snippet: new vscode.SnippetString().appendText('import ').appendPlaceholder(finalName, 1).appendTabstop(0).appendText(` from ${JSON.stringify(filePath)}\n`)
     }
   } else {
     const lastImportEnd = parseRes.SWCSpanToRowCol(lastImport.span.end)
@@ -222,7 +222,7 @@ export const getImportInsertPosAndName = (parseRes: ParseResult, defaultName: st
       identifierEnd: [lastImportEnd![0] + 1, IDENTIFIER_OFFSET + finalName.length],
       name: finalName,
       content: `\nimport ${finalName} from ${JSON.stringify(filePath)}`,
-      snippet: new vscode.SnippetString().appendText('\nimport ').appendPlaceholder(finalName, 1).appendText(` from ${JSON.stringify(filePath)}`)
+      snippet: new vscode.SnippetString().appendText('\nimport ').appendPlaceholder(finalName, 1).appendTabstop(0).appendText(` from ${JSON.stringify(filePath)}`)
     }
   }
 }

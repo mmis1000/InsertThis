@@ -71,23 +71,17 @@ export const InsertThisFileCommand = async (...args: any[]) => {
   if (originalPos != null) {
     if (res.hasMissingExpression) {
       await vscode.window.activeTextEditor?.insertSnippet(
-        new vscode.SnippetString().appendPlaceholder(originalPos.name),
+        new vscode.SnippetString().appendPlaceholder(originalPos.name).appendTabstop(0),
         new vscode.Position(...cursor)
       )
     } else {
       if (vscode.window.activeTextEditor) {
-        vscode.window.activeTextEditor.selection = new vscode.Selection(
-          new vscode.Position(...originalPos.start),
-          new vscode.Position(...originalPos.end)
-        )
-        vscode.window.activeTextEditor.revealRange(
+        vscode.window.activeTextEditor?.insertSnippet(
+          new vscode.SnippetString().appendPlaceholder(originalPos.name).appendTabstop(0),
           new vscode.Range(
-            new vscode.Position(...originalPos.start),
-            new vscode.Position(...originalPos.end)
-          )
-        )
-        vscode.commands.executeCommand(
-          "workbench.action.focusActiveEditorGroup"
+              new vscode.Position(...originalPos.start),
+              new vscode.Position(...originalPos.end)
+          ), {undoStopBefore: false, undoStopAfter: false}
         )
       }
     }
