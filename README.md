@@ -1,5 +1,7 @@
 # Insert this (WIP)
 
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/mmis1000-personal.insert-this)](https://marketplace.visualstudio.com/items?itemName=mmis1000-personal.insert-this)
+
 This is a extension that help you insert image resource into react project with ease
 
 ## Features
