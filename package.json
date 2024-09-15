@@ -2,7 +2,7 @@
   "name": "insert-this",
   "displayName": "Insert this",
   "description": "Insert file as import statement into current opened file.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "mmis1000-personal",
   "engines": {
     "vscode": "^1.93.0"
