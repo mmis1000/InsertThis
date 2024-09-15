@@ -3,12 +3,12 @@ import { Module, parse, ParseOptions } from "@swc/wasm"
 import { visitModule } from "./visitor"
 import stripAnsi from "strip-ansi"
 
-export type Pos = readonly [number, number]
+export type Pos = readonly [number, number];
 export const pos = (row: number, col: number): Pos => [row, col]
 
 export const parseSpan = (text: string): number[] => {
   const splitted = text.split(/\n/g)
-  console.log('[parseSpan]: ', splitted)
+
   const spans = []
 
   let current = 0
@@ -21,7 +21,6 @@ export const parseSpan = (text: string): number[] => {
 
   return spans
 }
-
 
 export const toSpan = ([row, col]: Pos, spans: number[]) => {
   return spans[row] + col
@@ -43,62 +42,79 @@ export const toRowCol = (span: number, spans: number[]) => {
 }
 
 export interface ParseResult {
-  result: Module
-  spanOffset: number
+  result: Module;
+  spanOffset: number;
   // indicate if cursor is on a missing expression
   // ex: `const a = <cursor at here> ;`
-  hasMissingExpression: boolean
-  extraSpanAfter: number
-  extraSpanSize: number
-  toRowCol: (span: number) => Pos | null,
-  toSpan: (pos: Pos) => number,
-  SWCSpanToSpan: (span: number) => number
-  SWCSpanToRowCol: (span: number) => Pos | null
+  hasMissingExpression: boolean;
+  extraSpanAfter: number;
+  extraSpanSize: number;
+  toRowCol: (span: number) => Pos | null;
+  toSpan: (pos: Pos) => number;
+  SWCSpanToSpan: (span: number) => number;
+  SWCSpanToRowCol: (span: number) => Pos | null;
 }
 
-export const parseAST = async (code: string, spans: number[], opt: ParseOptions, cursor: Pos): Promise<ParseResult> => {
+const getASTSpanBase = async () => {
+  const ast = await parse('""', {
+    syntax: "ecmascript",
+  })
+  return ast.span.end
+}
+
+export const parseAST = async (
+  code: string,
+  spans: number[],
+  opt: ParseOptions,
+  cursor: Pos
+): Promise<ParseResult> => {
   try {
+    const offset = await getASTSpanBase()
     const ast = await parse(code, opt)
     return {
       result: ast,
-      spanOffset: ast.span.start,
+      spanOffset: offset,
       hasMissingExpression: false,
-      extraSpanAfter: ast.span.start,
+      extraSpanAfter: offset,
       extraSpanSize: 0,
       toRowCol: (span) => toRowCol(span, spans),
       toSpan: (pos) => toSpan(pos, spans),
       SWCSpanToRowCol: (span) => {
-        return toRowCol(span - ast.span.start, spans)
+        return toRowCol(span - offset, spans)
       },
       SWCSpanToSpan: (span) => {
-        return span - ast.span.start
+        return span - offset
       },
     }
   } catch (err) {
+    const offset = await getASTSpanBase()
     const cursorSpan = toSpan(cursor, spans)
-    const modifiedCode = [...code].slice(0, cursorSpan).join('') + '""' + [...code].slice(cursorSpan).join('')
+    const modifiedCode =
+      [...code].slice(0, cursorSpan).join("") +
+      '""' +
+      [...code].slice(cursorSpan).join("")
     try {
       const ast = await parse(modifiedCode, opt)
       return {
         result: ast,
-        spanOffset: ast.span.start,
+        spanOffset: offset,
         hasMissingExpression: true,
-        extraSpanAfter: ast.span.start + cursorSpan,
+        extraSpanAfter: offset + cursorSpan,
         extraSpanSize: 2,
         toRowCol: (span) => toRowCol(span, spans),
         toSpan: (pos) => toSpan(pos, spans),
         SWCSpanToRowCol: (span) => {
-          if (span > ast.span.start + cursorSpan) {
-            return toRowCol(span - ast.span.start - 2, spans)
+          if (span > offset + cursorSpan) {
+            return toRowCol(span - offset - 2, spans)
           } else {
-            return toRowCol(span - ast.span.start, spans)
+            return toRowCol(span - offset, spans)
           }
         },
         SWCSpanToSpan: (span) => {
-          if (span > ast.span.start + cursorSpan) {
-            return span - ast.span.start - 2
+          if (span > offset + cursorSpan) {
+            return span - offset - 2
           } else {
-            return span - ast.span.start
+            return span - offset
           }
         },
       }
@@ -108,38 +124,75 @@ export const parseAST = async (code: string, spans: number[], opt: ParseOptions,
   }
 }
 
-
-export const isInJSXContext = (parseRes: ParseResult, position: vscode.Position) => {
+export const isInJSXContext = (
+  parseRes: ParseResult,
+  position: vscode.Position
+) => {
   const targetPos = parseRes.toSpan([position.line, position.character])
 
   let hit = false
 
   visitModule(parseRes.result, (node, ctx) => {
-    console.log(`[isInJSXContext]: ${node.type}, ${parseRes.SWCSpanToRowCol(node.span.start)} - ${parseRes.SWCSpanToRowCol(node.span.end)}`)
+    // console.log(`[isInJSXContext]: ${node.type}, ${parseRes.SWCSpanToRowCol(node.span.start)} - ${parseRes.SWCSpanToRowCol(node.span.end)}`)
 
-    if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-      const full = [parseRes.SWCSpanToSpan(node.span.start), parseRes.SWCSpanToSpan(node.span.end)]
-      const tagStart = [parseRes.SWCSpanToSpan(node.opening.span.start), parseRes.SWCSpanToSpan(node.opening.span.end)]
-      const tagEnd = node.closing ? [parseRes.SWCSpanToSpan(node.closing.span.start), parseRes.SWCSpanToSpan(node.closing.span.end)] : null
+    const full = [
+      parseRes.SWCSpanToSpan(node.span.start),
+      parseRes.SWCSpanToSpan(node.span.end),
+    ]
 
-      console.log('[isInJSXContext]: scan jsx tag, ', targetPos, full, tagStart, tagEnd)
+    // ignore not in element
+    if (full[0] >= targetPos || targetPos >= full[1]) {
+      ctx.leave()
+      return
+    }
+
+    if (node.type === "JSXElement" || node.type === "JSXFragment") {
+      const tagStart = [
+        parseRes.SWCSpanToSpan(node.opening.span.start),
+        parseRes.SWCSpanToSpan(node.opening.span.end),
+      ]
+      const tagEnd = node.closing
+        ? [
+            parseRes.SWCSpanToSpan(node.closing.span.start),
+            parseRes.SWCSpanToSpan(node.closing.span.end),
+          ]
+        : null
+
+      console.log(
+        "[isInJSXContext]: scan jsx tag, ",
+        targetPos,
+        full,
+        tagStart,
+        tagEnd
+      )
 
       // ignore self close element
-      if (tagEnd == null) { return }
+      if (tagEnd == null) {
+        return
+      }
 
       // ignore not in element
-      if (full[0] >= targetPos || targetPos >= full[1]) { return }
+      if (full[0] >= targetPos || targetPos >= full[1]) {
+        return
+      }
 
       // ignore in start tag
-      if (tagStart[0] < targetPos && targetPos < tagStart[1]) { return }
+      if (tagStart[0] < targetPos && targetPos < tagStart[1]) {
+        return
+      }
 
       // ignore in end tag
-      if (tagEnd[0] < targetPos && targetPos < tagEnd[1]) { return }
+      if (tagEnd[0] < targetPos && targetPos < tagEnd[1]) {
+        return
+      }
 
       // ignore in non text children
       for (const child of node.children) {
-        if (child.type !== 'JSXText') {
-          if (parseRes.SWCSpanToSpan(child.span.start) < targetPos && targetPos < parseRes.SWCSpanToSpan(child.span.end)) {
+        if (child.type !== "JSXText") {
+          if (
+            parseRes.SWCSpanToSpan(child.span.start) < targetPos &&
+            targetPos < parseRes.SWCSpanToSpan(child.span.end)
+          ) {
             // woops, we are in child element
             return
           }
@@ -147,7 +200,7 @@ export const isInJSXContext = (parseRes: ParseResult, position: vscode.Position)
       }
 
       // stop the visitor because we found it
-      console.log('[isInJSXContext]: found')
+      console.log("[isInJSXContext]: found")
       hit = true
       ctx.stop()
     }
@@ -157,15 +210,17 @@ export const isInJSXContext = (parseRes: ParseResult, position: vscode.Position)
 }
 
 export const getExistingImport = (parseRes: ParseResult, filePath: string) => {
-  const imports = parseRes.result.body.filter((i) => i.type === "ImportDeclaration")
+  const imports = parseRes.result.body.filter(
+    (i) => i.type === "ImportDeclaration"
+  )
   for (const statement of imports) {
     if (statement.source.value === filePath) {
       for (const specifier of statement.specifiers) {
-        if (specifier.type === 'ImportDefaultSpecifier') {
+        if (specifier.type === "ImportDefaultSpecifier") {
           return {
             start: parseRes.SWCSpanToRowCol(specifier.local.span.start)!,
             end: parseRes.SWCSpanToRowCol(specifier.local.span.end)!,
-            name: specifier.local.value
+            name: specifier.local.value,
           }
         }
       }
@@ -175,17 +230,23 @@ export const getExistingImport = (parseRes: ParseResult, filePath: string) => {
 }
 
 export interface InsertResult {
-  at: [row: number, col: number],
-  identifierStart: [row: number, col: number],
-  identifierEnd: [row: number, col: number],
-  name: string,
+  at: [row: number, col: number];
+  identifierStart: [row: number, col: number];
+  identifierEnd: [row: number, col: number];
+  name: string;
   content: string;
-  snippet: vscode.SnippetString
+  snippet: vscode.SnippetString;
 }
 
-export const getImportInsertPosAndName = (parseRes: ParseResult, defaultName: string, filePath: string): InsertResult => {
+export const getImportInsertPosAndName = (
+  parseRes: ParseResult,
+  defaultName: string,
+  filePath: string
+): InsertResult => {
   const importNames: string[] = []
-  const imports = parseRes.result.body.filter((i) => i.type === "ImportDeclaration")
+  const imports = parseRes.result.body.filter(
+    (i) => i.type === "ImportDeclaration"
+  )
 
   for (const statement of imports) {
     for (const specifier of statement.specifiers) {
@@ -202,7 +263,7 @@ export const getImportInsertPosAndName = (parseRes: ParseResult, defaultName: st
   }
 
   const lastImport = imports[imports.length - 1]
-  const IDENTIFIER_OFFSET = 'import '.length
+  const IDENTIFIER_OFFSET = "import ".length
 
   if (lastImport == null) {
     return {
@@ -211,7 +272,11 @@ export const getImportInsertPosAndName = (parseRes: ParseResult, defaultName: st
       identifierEnd: [0, IDENTIFIER_OFFSET + finalName.length],
       name: finalName,
       content: `import ${finalName} from ${JSON.stringify(filePath)}\n`,
-      snippet: new vscode.SnippetString().appendText('import ').appendPlaceholder(finalName, 1).appendTabstop(0).appendText(` from ${JSON.stringify(filePath)}\n`)
+      snippet: new vscode.SnippetString()
+        .appendText("import ")
+        .appendPlaceholder(finalName, 1)
+        .appendTabstop(0)
+        .appendText(` from ${JSON.stringify(filePath)}\n`),
     }
   } else {
     const lastImportEnd = parseRes.SWCSpanToRowCol(lastImport.span.end)
@@ -219,10 +284,17 @@ export const getImportInsertPosAndName = (parseRes: ParseResult, defaultName: st
       at: [lastImportEnd![0], lastImportEnd![1]],
       // next line
       identifierStart: [lastImportEnd![0] + 1, IDENTIFIER_OFFSET],
-      identifierEnd: [lastImportEnd![0] + 1, IDENTIFIER_OFFSET + finalName.length],
+      identifierEnd: [
+        lastImportEnd![0] + 1,
+        IDENTIFIER_OFFSET + finalName.length,
+      ],
       name: finalName,
       content: `\nimport ${finalName} from ${JSON.stringify(filePath)}`,
-      snippet: new vscode.SnippetString().appendText('\nimport ').appendPlaceholder(finalName, 1).appendTabstop(0).appendText(` from ${JSON.stringify(filePath)}`)
+      snippet: new vscode.SnippetString()
+        .appendText("\nimport ")
+        .appendPlaceholder(finalName, 1)
+        .appendTabstop(0)
+        .appendText(` from ${JSON.stringify(filePath)}`),
     }
   }
 }

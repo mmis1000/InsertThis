@@ -22,7 +22,9 @@ const { relative, dirname } = posix
  * - The operating system
  * - The open editors view
  */
-export class FileNameListOnDropProvider implements vscode.DocumentDropEditProvider {
+export class FileNameListOnDropProvider
+  implements vscode.DocumentDropEditProvider
+{
   async provideDocumentDropEdits(
     _document: vscode.TextDocument,
     position: vscode.Position,
@@ -115,7 +117,9 @@ export class FileNameListOnDropProvider implements vscode.DocumentDropEditProvid
         ? null
         : getImportInsertPosAndName(res, sanitizedName, relativePath)
 
-    const inJSXContext = isInJSXContext(res, position)
+    const inJSXContext =
+      (language === "typescriptreact" || language === "javascriptreact") &&
+      isInJSXContext(res, position)
 
     vscode.window.activeTextEditor?.edit((builder) => {
       if (inJSXContext) {
