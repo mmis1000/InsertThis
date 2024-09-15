@@ -53,4 +53,8 @@ Add tab stop 0 to snippet string so tab won't delete selection
 
 Workaround swc/wasm span bug when there is comment or span before first statement
 
+### 0.0.4
+
+Add even more swc/wasm workaround
+
 **Enjoy!**

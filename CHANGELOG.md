@@ -13,3 +13,7 @@ All notable changes to the "insert-this" extension will be documented in this fi
 ## [0.0.3]
 
 - Workaround swc/wasm span bug when there is comment or span before first statement
+
+## [0.0.4]
+
+Add even more swc/wasm workaround
