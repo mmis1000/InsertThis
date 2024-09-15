@@ -6,6 +6,7 @@ import stripAnsi from "strip-ansi"
 export type Pos = readonly [number, number];
 export const pos = (row: number, col: number): Pos => [row, col]
 
+
 export const parseSpan = (text: string): number[] => {
   const splitted = text.split(/\n/g)
 
@@ -55,11 +56,13 @@ export interface ParseResult {
   SWCSpanToRowCol: (span: number) => Pos | null;
 }
 
+// idk, why there is always 1 extra span before actual code?
+const PRE_SPAN = 1
 const getASTSpanBase = async () => {
   const ast = await parse('""', {
     syntax: "ecmascript",
   })
-  return ast.span.end
+  return ast.span.end + PRE_SPAN
 }
 
 export const parseAST = async (
