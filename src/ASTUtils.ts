@@ -6,25 +6,47 @@ import stripAnsi from "strip-ansi"
 export type Pos = readonly [number, number];
 export const pos = (row: number, col: number): Pos => [row, col]
 
+const textEncoder = new TextEncoder()
+const textDecoder = new TextDecoder()
+let tempBuffer = new Uint8Array(0)
 
-export const parseSpan = (text: string): number[] => {
+const byteLength = (s: string) => {
+  if (s.length * 3 > tempBuffer.length) {
+    tempBuffer = new Uint8Array(s.length * 3)
+  }
+  const res = textEncoder.encodeInto(s, tempBuffer)
+  return res.written
+}
+
+type SpanInfo = {
+  span: number,
+  text: string
+}[]
+
+export const parseSpan = (text: string): SpanInfo => {
   const splitted = text.split(/\n/g)
 
-  const spans = []
+  const spans: SpanInfo = []
 
   let current = 0
   for (let i = 0; i < splitted.length; i++) {
-    spans.push(current)
-    current += [...splitted[i]].length
+    spans.push({
+      span: current,
+      text: splitted[i]
+    })
+    current += byteLength(splitted[i])
     current += 1
   }
-  spans.push(text.length)
+  spans.push({
+    span: byteLength(text),
+    text: ''
+  })
 
   return spans
 }
 
-export const toSpan = ([row, col]: Pos, spans: number[]) => {
-  return spans[row] + col
+export const toSpan = ([row, col]: Pos, spans: SpanInfo) => {
+  return spans[row].span + byteLength(spans[row].text.slice(0, col))
 }
 
 /**
@@ -32,10 +54,16 @@ export const toSpan = ([row, col]: Pos, spans: number[]) => {
  * @param span 0 indexed span
  * @param spans 0 indexed spans
  */
-export const toRowCol = (span: number, spans: number[]) => {
+export const toRowCol = (span: number, spans: SpanInfo) => {
   for (let i = 0; i < spans.length; i++) {
-    if (span <= spans[i + 1]) {
-      return [i, span - spans[i]] as const
+    if (span <= spans[i + 1].span) {
+      const byteLength = span - spans[i].span
+      if (byteLength > tempBuffer.length) {
+        tempBuffer = new Uint8Array(byteLength)
+      }
+      const encodeRes = textEncoder.encodeInto(spans[i].text, tempBuffer)
+      const text = textDecoder.decode(tempBuffer.subarray(0, encodeRes.written))
+      return [i, text.length] as const
     }
   }
 
@@ -67,7 +95,7 @@ const getASTSpanBase = async () => {
 
 export const parseAST = async (
   code: string,
-  spans: number[],
+  spans: SpanInfo,
   opt: ParseOptions,
   cursor: Pos
 ): Promise<ParseResult> => {
@@ -92,10 +120,13 @@ export const parseAST = async (
   } catch (err) {
     const offset = await getASTSpanBase()
     const cursorSpan = toSpan(cursor, spans)
-    const modifiedCode =
-      [...code].slice(0, cursorSpan).join("") +
-      '""' +
-      [...code].slice(cursorSpan).join("")
+
+    const encoded = textEncoder.encode(code)
+    const modifiedPart1 = textDecoder.decode(encoded.subarray(0, cursorSpan))
+    const modifiedCode2 = '""'
+    const modifiedPart3 = textDecoder.decode(encoded.subarray(cursorSpan))
+
+    const modifiedCode = modifiedPart1 + modifiedCode2 + modifiedPart3
     try {
       const ast = await parse(modifiedCode, opt)
       return {

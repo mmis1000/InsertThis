@@ -2,22 +2,6 @@
 import { posix } from "path"
 const { basename } = posix
 
-export const parseSpan = (text: string): number[] => {
-  const splitted = text.split(/\n/g)
-  console.log(splitted)
-  const spans = []
-
-  let current = 0
-  for (let i = 0; i < splitted.length; i++) {
-    spans.push(current)
-    current += [...splitted[i]].length
-    current += 1
-  }
-  spans.push(text.length)
-
-  return spans
-}
-
 
 const extensionSuffixMap: Record<string, string> = {
   svg: "Img",
