@@ -57,4 +57,8 @@ Workaround swc/wasm span bug when there is comment or span before first statemen
 
 Add even more swc/wasm workaround
 
+### 0.0.5
+
+Fix col calculation error caused by multi byte character and add license
+
 **Enjoy!**

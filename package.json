@@ -1,26 +1,34 @@
 {
   "name": "insert-this",
   "displayName": "Insert this",
+  "version": "0.0.5",
   "description": "Insert file as import statement into current opened file.",
-  "version": "0.0.4",
-  "publisher": "mmis1000-personal",
-  "engines": {
-    "vscode": "^1.93.0"
-  },
+  "categories": [
+    "Other"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mmis1000/InsertThis.git"
   },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onLanguage:typescript",
-    "onLanguage:typescriptreact",
-    "onLanguage:javascript",
-    "onLanguage:javascriptreact"
-  ],
+  "license": "MIT",
+  "author": {
+    "name": "mmis1000",
+    "email": "mmis10002@gmail.com",
+    "url": "https://mmis1000.me/"
+  },
+  "publisher": "mmis1000-personal",
   "main": "./dist/extension.js",
+  "scripts": {
+    "compile": "webpack",
+    "compile-tests": "tsc -p . --outDir out",
+    "lint": "eslint src",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "test": "vscode-test",
+    "vscode:prepublish": "npm run package",
+    "watch": "webpack --watch",
+    "watch-tests": "tsc -p . -w --outDir out"
+  },
   "contributes": {
     "commands": [
       {
@@ -46,16 +54,15 @@
       ]
     }
   },
-  "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact"
+  ],
+  "dependencies": {
+    "@swc/wasm": "^1.7.26",
+    "strip-ansi": "^7.1.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
@@ -72,8 +79,7 @@
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4"
   },
-  "dependencies": {
-    "@swc/wasm": "^1.7.26",
-    "strip-ansi": "^7.1.0"
+  "engines": {
+    "vscode": "^1.93.0"
   }
 }

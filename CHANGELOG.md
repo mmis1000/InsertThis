@@ -16,4 +16,9 @@ All notable changes to the "insert-this" extension will be documented in this fi
 
 ## [0.0.4]
 
-Add even more swc/wasm workaround
+- Add even more swc/wasm workaround
+
+## [0.0.5]
+
+- Fix col calculation error caused by multi byte character
+- Add license
