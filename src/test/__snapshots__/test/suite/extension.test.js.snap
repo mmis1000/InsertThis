@@ -1,11 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Extension Test Suite Missing expr 1`] = `
+exports[`E2E Missing expr 1`] = `
 "import testImg from \\"../assets/test.svg\\"
 const a = testImg"
 `;
 
-exports[`Extension Test Suite Missing expr multi byte 1`] = `
+exports[`E2E Missing expr multi byte 1`] = `
 "import testImg from \\"../assets/test.svg\\"
 const 中文 = testImg"
 `;

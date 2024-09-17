@@ -62,6 +62,13 @@ describe("Extension Test Suite", () => {
     assert.equal(vscode.window.activeTextEditor?.selection.start.character, 17)
     await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
   })
+})
+
+describe("E2E", () => {
+  chai.use(jestSnapshotPlugin({
+    "snapshotResolver": path.resolve(__dirname, "../snapshotResolver.js"),
+    "moduleFileExtensions": ["js"]
+  }))
 
   it("Missing expr", async () => {
     const root = vscode.workspace.workspaceFolders![0].uri
