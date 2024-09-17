@@ -1,5 +1,4 @@
 import * as vscode from "vscode"
-import { posix } from "path"
 import {
   getExistingImport,
   getImportInsertPosAndName,
@@ -8,10 +7,7 @@ import {
   ParseResult,
   parseSpan,
 } from "../ASTUtils"
-import { getSanitizedName } from "../utils"
-
-const uriListMime = "text/uri-list"
-const { relative, dirname } = posix
+import { getSanitizedName, relative } from "../utils"
 
 export const InsertThisFileCommand = async (...args: any[]) => {
   if (!(args[0] instanceof vscode.Uri)) {
@@ -22,8 +18,7 @@ export const InsertThisFileCommand = async (...args: any[]) => {
   const target = vscode.window.activeTextEditor?.document.uri!
   const language = vscode.window.activeTextEditor?.document.languageId
 
-  const targetDir = dirname(target.path)
-  let relativePath = relative(targetDir, sourcePath.path)
+  let relativePath = relative(target, sourcePath)
 
   if (!relativePath.startsWith(".")) {
     relativePath = "./" + relativePath
@@ -67,23 +62,38 @@ export const InsertThisFileCommand = async (...args: any[]) => {
   }
 
   const originalPos = getExistingImport(res, relativePath)
+  const inJSXContext =
+    (language === "typescriptreact" || language === "javascriptreact") &&
+    isInJSXContext(res, cursor)
 
   if (originalPos != null) {
     if (res.hasMissingExpression) {
       await vscode.window.activeTextEditor?.insertSnippet(
-        new vscode.SnippetString().appendPlaceholder(originalPos.name).appendTabstop(0),
+        new vscode.SnippetString()
+          .appendPlaceholder(originalPos.name)
+          .appendTabstop(0),
+        new vscode.Position(...cursor)
+      )
+    } else if (inJSXContext) {
+      vscode.window.activeTextEditor?.insertSnippet(
+        new vscode.SnippetString()
+        .appendText('<img src={')
+          .appendText(originalPos.name)
+          .appendText('} alt="" />')
+          .appendTabstop(0),
         new vscode.Position(...cursor)
       )
     } else {
-      if (vscode.window.activeTextEditor) {
-        vscode.window.activeTextEditor?.insertSnippet(
-          new vscode.SnippetString().appendPlaceholder(originalPos.name).appendTabstop(0),
-          new vscode.Range(
-              new vscode.Position(...originalPos.start),
-              new vscode.Position(...originalPos.end)
-          ), {undoStopBefore: false, undoStopAfter: false}
-        )
-      }
+      vscode.window.activeTextEditor?.insertSnippet(
+        new vscode.SnippetString()
+          .appendPlaceholder(originalPos.name)
+          .appendTabstop(0),
+        new vscode.Range(
+          new vscode.Position(...originalPos.start),
+          new vscode.Position(...originalPos.end)
+        ),
+        { undoStopBefore: false, undoStopAfter: false }
+      )
     }
 
     return
@@ -98,6 +108,26 @@ export const InsertThisFileCommand = async (...args: any[]) => {
       toInsert.snippet,
       new vscode.Position(...toInsert.at)
     )
+
+    const calibratedCursor = cursor[0] > toInsert.at[0] ? cursor : [cursor[0] + 1, cursor[1]] as const
+
+    if (res.hasMissingExpression) {
+      await vscode.window.activeTextEditor?.insertSnippet(
+        new vscode.SnippetString()
+          .appendPlaceholder(toInsert.name)
+          .appendTabstop(0),
+        new vscode.Position(...calibratedCursor)
+      )
+    } else if (inJSXContext) {
+      await vscode.window.activeTextEditor?.insertSnippet(
+        new vscode.SnippetString()
+        .appendText('<img src={')
+          .appendText(toInsert.name)
+          .appendText('} alt="" />')
+          .appendTabstop(0),
+        new vscode.Position(...calibratedCursor)
+      )
+    }
   }
 
   return

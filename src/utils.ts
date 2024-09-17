@@ -1,7 +1,6 @@
-
-import { posix } from "path"
+import { posix, win32 } from "path"
+import { Uri } from "vscode"
 const { basename } = posix
-
 
 const extensionSuffixMap: Record<string, string> = {
   svg: "Img",
@@ -11,6 +10,16 @@ const extensionSuffixMap: Record<string, string> = {
   webp: "Img",
 }
 
+export const relative = (from: Uri, to: Uri) => {
+  // do to case insensitive of driver letter
+  if (from.scheme === "file" && to.scheme === "file") {
+    return win32
+      .relative(win32.dirname(from.fsPath), to.fsPath)
+      .replaceAll(win32.sep, posix.sep)
+  }
+
+  return posix.relative(posix.dirname(from.path), to.path)
+}
 
 export const getSanitizedName = (path: string) => {
   const filename = basename(path).replace(/\.[^.]+$/, "")

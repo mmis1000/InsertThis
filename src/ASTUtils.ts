@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import { Module, parse, ParseOptions } from "@swc/wasm"
 import { visitModule } from "./visitor"
-import stripAnsi from "strip-ansi"
+import stripAnsi from "strip-ansi-cjs"
 
 export type Pos = readonly [number, number];
 export const pos = (row: number, col: number): Pos => [row, col]
@@ -19,9 +19,9 @@ const byteLength = (s: string) => {
 }
 
 type SpanInfo = {
-  span: number,
-  text: string
-}[]
+  span: number;
+  text: string;
+}[];
 
 export const parseSpan = (text: string): SpanInfo => {
   const splitted = text.split(/\n/g)
@@ -32,14 +32,14 @@ export const parseSpan = (text: string): SpanInfo => {
   for (let i = 0; i < splitted.length; i++) {
     spans.push({
       span: current,
-      text: splitted[i]
+      text: splitted[i],
     })
     current += byteLength(splitted[i])
     current += 1
   }
   spans.push({
     span: byteLength(text),
-    text: ''
+    text: "",
   })
 
   return spans
@@ -62,7 +62,9 @@ export const toRowCol = (span: number, spans: SpanInfo) => {
         tempBuffer = new Uint8Array(byteLength)
       }
       const encodeRes = textEncoder.encodeInto(spans[i].text, tempBuffer)
-      const text = textDecoder.decode(tempBuffer.subarray(0, encodeRes.written))
+      const text = textDecoder.decode(
+        tempBuffer.subarray(0, byteLength)
+      )
       return [i, text.length] as const
     }
   }
@@ -158,11 +160,15 @@ export const parseAST = async (
   }
 }
 
+export const toPos = (vsPos: vscode.Position) => {
+  return [vsPos.line, vsPos.character] as const
+}
+
 export const isInJSXContext = (
   parseRes: ParseResult,
-  position: vscode.Position
+  position: Pos
 ) => {
-  const targetPos = parseRes.toSpan([position.line, position.character])
+  const targetPos = parseRes.toSpan(position)
 
   let hit = false
 
@@ -243,6 +249,47 @@ export const isInJSXContext = (
   return hit
 }
 
+export const isInStringContext = (
+  parseRes: ParseResult,
+  position: vscode.Position
+) => {
+  const targetPos = parseRes.toSpan([position.line, position.character])
+
+  let hit = false
+
+  visitModule(parseRes.result, (node, ctx) => {
+    // console.log(`[isInJSXContext]: ${node.type}, ${parseRes.SWCSpanToRowCol(node.span.start)} - ${parseRes.SWCSpanToRowCol(node.span.end)}`)
+    const full = [
+      parseRes.SWCSpanToSpan(node.span.start),
+      parseRes.SWCSpanToSpan(node.span.end),
+    ]
+
+    // ignore not in element
+    if (full[0] >= targetPos || targetPos >= full[1]) {
+      ctx.leave()
+      return
+    }
+
+    if (node.type === "StringLiteral") {
+      hit = true
+      ctx.stop()
+      return
+    }
+
+    if (node.type === "TemplateLiteral") {
+      for (const el of node.quasis) {
+        if (parseRes.SWCSpanToSpan(el.span.start) <= targetPos && targetPos <= parseRes.SWCSpanToSpan(el.span.end)) {
+          node.quasis
+          hit = true
+          ctx.stop()
+          return
+        }
+      }
+    }
+  })
+
+  return hit
+}
 export const getExistingImport = (parseRes: ParseResult, filePath: string) => {
   const imports = parseRes.result.body.filter(
     (i) => i.type === "ImportDeclaration"

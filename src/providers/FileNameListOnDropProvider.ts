@@ -1,17 +1,17 @@
 import * as vscode from "vscode"
-import { posix } from "path"
 import {
   getExistingImport,
   getImportInsertPosAndName,
   isInJSXContext,
+  isInStringContext,
   parseAST,
   ParseResult,
   parseSpan,
+  toPos,
 } from "../ASTUtils"
-import { getSanitizedName } from "../utils"
+import { getSanitizedName, relative } from "../utils"
 
 const uriListMime = "text/uri-list"
-const { relative, dirname } = posix
 
 /**
  * Provider that inserts a numbered list of the names of dropped files.
@@ -67,8 +67,7 @@ export class FileNameListOnDropProvider
     const target = vscode.window.activeTextEditor?.document.uri!
     const language = vscode.window.activeTextEditor?.document.languageId
 
-    const targetDir = dirname(target.path)
-    let relativePath = relative(targetDir, uri.path)
+    let relativePath = relative(target, uri)
 
     if (!relativePath.startsWith(".")) {
       relativePath = "./" + relativePath
@@ -119,7 +118,9 @@ export class FileNameListOnDropProvider
 
     const inJSXContext =
       (language === "typescriptreact" || language === "javascriptreact") &&
-      isInJSXContext(res, position)
+      isInJSXContext(res, toPos(position))
+
+    const inStringContext = isInStringContext(res, position)
 
     vscode.window.activeTextEditor?.edit((builder) => {
       if (inJSXContext) {
@@ -155,12 +156,29 @@ export class FileNameListOnDropProvider
               existingImport.name
             )
           }
-        } else {
-          // assume we want a string
+        } else if (inStringContext) {
+          // assume we want a string because we are somehow in a string
           builder.insert(
             new vscode.Position(position.line, position.character),
             relativePath
           )
+        } else {
+          if (toInsert) {
+            builder.insert(
+              new vscode.Position(position.line, position.character),
+              toInsert.name
+            )
+            builder.insert(
+              new vscode.Position(...toInsert.at),
+              toInsert.content
+            )
+          }
+          if (existingImport) {
+            builder.insert(
+              new vscode.Position(position.line, position.character),
+              existingImport.name
+            )
+          }
         }
       }
     })
