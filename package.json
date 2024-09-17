@@ -18,6 +18,7 @@
   },
   "publisher": "mmis1000-personal",
   "main": "./dist/extension.js",
+  "icon": "icon.png",
   "scripts": {
     "compile": "webpack",
     "compile-tests": "tsc -p . --outDir out",
