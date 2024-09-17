@@ -61,4 +61,8 @@ Add even more swc/wasm workaround
 
 Fix col calculation error caused by multi byte character and add license
 
+### 0.0.6
+
+Add e2e and fix windows path case issue
+
 **Enjoy!**

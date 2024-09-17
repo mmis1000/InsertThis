@@ -22,3 +22,7 @@ All notable changes to the "insert-this" extension will be documented in this fi
 
 - Fix col calculation error caused by multi byte character
 - Add license
+
+## [0.0.6]
+
+Add e2e and fix windows path case issue
