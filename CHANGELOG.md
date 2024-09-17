@@ -25,4 +25,8 @@ All notable changes to the "insert-this" extension will be documented in this fi
 
 ## [0.0.6]
 
-Add e2e and fix windows path case issue
+- Add e2e and fix windows path case issue
+
+## [0.0.7]
+
+- Add icon

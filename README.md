@@ -65,4 +65,8 @@ Fix col calculation error caused by multi byte character and add license
 
 Add e2e and fix windows path case issue
 
+### 0.0.7
+
+Add icon
+
 **Enjoy!**
