@@ -37,3 +37,7 @@ All notable changes to the "insert-this" extension will be documented in this fi
   for improved memory usage and performance
 - Support multi missing expression by using Typescript Language Service
 - Fix tons of edge case related to JSX elements
+
+## [0.1.1]
+
+- Log clean up

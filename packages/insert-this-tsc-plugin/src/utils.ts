@@ -6,11 +6,11 @@ export const locateLeafNode = (
   node: ts.Node,
   offset: number
 ): ts.Node | undefined => {
-  console.log(
-    `kind ${ts.SyntaxKind[node.kind]}(${node.kind}), pos: ${node.pos} - ${
-      node.end
-    }, want: ${offset}`
-  )
+  // console.log(
+  //   `kind ${ts.SyntaxKind[node.kind]}(${node.kind}), pos: ${node.pos} - ${
+  //     node.end
+  //   }, want: ${offset}`
+  // )
   if (offset < node.pos || node.end <= offset) {
     return undefined
   }

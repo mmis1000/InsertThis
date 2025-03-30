@@ -14,30 +14,11 @@ function init(modules: {
   function create(
     info: import('typescript/lib/tsserverlibrary').server.PluginCreateInfo
   ) {
-    console.log('hello tsc plugin')
-    info.session?.addProtocolHandler(COMMANDS.test, (arg) => {
-      info.project.projectService.logger.info('command 123')
-      const normalizedPath = ts.server.toNormalizedPath(arg.arguments)
-
-      const projectService = info.project.projectService
-      const scriptInfo =
-        projectService.getScriptInfoForNormalizedPath(normalizedPath)
-      const targetProject = scriptInfo?.getDefaultProject()
-      const sourceFile = targetProject?.getSourceFile(scriptInfo!.path)
-
-      console.log(inspect(scriptInfo))
-      console.log(inspect(targetProject))
-      return {
-        response: serialize(sourceFile, {
-          lossy: true
-        })
-      }
-    })
     info.session?.addProtocolHandler(COMMANDS.insertInto, (arg) => {
       const [path, row, col, file, normalizedName]: COMMAND_ARGS['insertInto'] =
         arg.arguments
 
-      info.project.projectService.logger.info('command insert')
+      info.project.projectService.logger.info(`Command insert: ${arg.arguments.join(' ')}`)
       const normalizedPath = ts.server.toNormalizedPath(path)
 
       const projectService = info.project.projectService
@@ -126,15 +107,8 @@ function init(modules: {
         import: importChange
       }
       console.log(
-        res != null ? ts.SyntaxKind[res.kind] : '[[not inside node]]',
-        'matching error',
-        inspect(matchedError),
-        'target pos',
-        inspect(pos),
-        'all error',
-        inspect(diagnostics),
+        'result:',
         inspect(result),
-        inspect(res)
       )
 
       return {

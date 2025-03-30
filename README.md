@@ -74,4 +74,8 @@ Support multi missing expression by using Typescript Language Service
 
 Fix tons of edge case related to JSX elements
 
+### 0.1.1
+
+Log clean up
+
 **Enjoy!**
