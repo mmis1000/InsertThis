@@ -121,5 +121,8 @@
   },
   "workspaces": [
     "packages/insert-this-tsc-plugin"
-  ]
+  ],
+  "vsce": {
+    "followSymlinks": true
+  }
 }
