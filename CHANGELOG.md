@@ -30,3 +30,10 @@ All notable changes to the "insert-this" extension will be documented in this fi
 ## [0.0.7]
 
 - Add icon
+
+## [0.1.0]
+
+- Total rewrite with vscode Typescript Language Service extension
+  for improved memory usage and performance
+- Support multi missing expression by using Typescript Language Service
+- Fix tons of edge case related to JSX elements

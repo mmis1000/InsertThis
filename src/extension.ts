@@ -4,18 +4,27 @@ import * as vscode from "vscode"
 import { InsertThisFileCommand } from "./commands/InsertThisFileCommand"
 import { FileNameListOnDropProvider } from "./providers/FileNameListOnDropProvider"
 
+import { serialize, deserialize } from '@ungap/structured-clone'
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "insert-this" is now active!')
-
+  
   const disposable = vscode.commands.registerCommand(
     "insert-this.insertThisFile",
     InsertThisFileCommand
   )
-  context.subscriptions.push(disposable)
+  context.subscriptions.push(disposable, vscode.commands.registerCommand('insert-this.testTscCommand', async (...args) => {
+    console.log(args)
+    const target = vscode.window.activeTextEditor?.document.uri!
+    const start = Date.now()
+    const res = await vscode.commands.executeCommand('typescript.tsserverRequest', '_insert_this_test', target.scheme === 'file' ? target.fsPath : target.toString())
+    console.log(deserialize((res as import('typescript').server.protocol.Response).body))
+    console.log(Date.now() - start)
+  }))
   const selectors: vscode.DocumentSelector[] = [
     { language: "javascript" },
     { language: "javascriptreact" },
@@ -30,6 +39,8 @@ export function activate(context: vscode.ExtensionContext) {
       )
     )
   }
+
+  console.log(vscode.extensions.getExtension('vscode.typescript-language-features')?.exports)
 }
 
 // This method is called when your extension is deactivated

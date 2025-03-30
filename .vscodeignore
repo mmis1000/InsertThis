@@ -13,3 +13,5 @@ vsc-extension-quickstart.md
 **/*.ts
 **/.vscode-test.*
 README_assets/**
+!node_modules/insert-this-tsc-plugin
+node_modules/insert-this-tsc-plugin/src/**

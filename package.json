@@ -1,7 +1,7 @@
 {
   "name": "insert-this",
   "displayName": "Insert this",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "description": "Insert file as import statement into current opened file.",
   "categories": [
     "Other"
@@ -20,22 +20,34 @@
   "main": "./dist/extension.js",
   "icon": "icon.png",
   "scripts": {
+    "compile-all": "npm run --include-workspace-root --workspaces compile",
+    "watch-all": "npm-run-all -p watch watch:plugin",
     "compile": "webpack",
     "compile-tests": "tsc -p . --outDir out",
     "just-test": "node ./out/test/runTest.js",
     "lint": "eslint src",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "pretest": "npm run compile-tests && npm run compile-all && npm run lint",
     "test": "npm run test-compile && npm run just-test",
-    "test-compile": "tsc -p ./ && npm run webpack",
+    "test-compile": "tsc -p ./ && npm run compile-all",
     "test:update-snapshot": "npm run test-compile && cross-env UPDATE_SNAPSHOT=1 npm run just-test  ",
-    "vscode:prepublish": "npm run package",
+    "vscode:prepublish": "npm run --include-workspace-root --workspaces package",
     "watch": "webpack --watch",
+    "watch:plugin": "npm run --workspace=insert-this-tsc-plugin watch",
     "watch-tests": "tsc -p . -w --outDir out",
     "webpack": "webpack --mode none"
   },
   "contributes": {
+    "typescriptServerPlugins": [
+      {
+        "name": "insert-this-tsc-plugin"
+      }
+    ],
     "commands": [
+      {
+        "command": "insert-this.testTscCommand",
+        "title": "Test TSC Plugin"
+      },
       {
         "command": "insert-this.helloWorld",
         "title": "Hello World"
@@ -65,8 +77,12 @@
     "onLanguage:javascript",
     "onLanguage:javascriptreact"
   ],
+  "extensionDependencies": [
+    "vscode.typescript-language-features"
+  ],
   "dependencies": {
-    "@swc/wasm": "^1.7.26",
+    "@ungap/structured-clone": "^1.3.0",
+    "insert-this-tsc-plugin": "file:./packages/insert-this-tsc-plugin",
     "strip-ansi-cjs": "npm:strip-ansi@^6.0.1"
   },
   "devDependencies": {
@@ -77,6 +93,7 @@
     "@types/istanbul-reports": "^3.0.4",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
+    "@types/ungap__structured-clone": "^1.2.0",
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.3.0",
     "@typescript-eslint/parser": "^8.3.0",
@@ -93,12 +110,19 @@
     "istanbul-reports": "^3.1.7",
     "mocha-chai-jest-snapshot": "^1.1.6",
     "mocha-multi-reporters": "^1.5.1",
+    "npm-run-all": "^4.1.5",
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.4",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4"
   },
   "engines": {
-    "vscode": "^1.93.0"
+    "vscode": "^1.97.0"
+  },
+  "workspaces": [
+    "packages/insert-this-tsc-plugin"
+  ],
+  "vsce": {
+    "followSymlinks": true
   }
 }
