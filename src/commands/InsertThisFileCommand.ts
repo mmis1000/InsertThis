@@ -1,13 +1,6 @@
 import * as vscode from "vscode"
-import {
-  getExistingImport,
-  getImportInsertPosAndName,
-  isInJSXContext,
-  parseAST,
-  ParseResult,
-  parseSpan,
-} from "../ASTUtils"
 import { getSanitizedName, relative } from "../utils"
+import type { COMMANDS, COMMAND_ARGS, COMMAND_RESULT } from 'insert-this-tsc-plugin/src/commands'
 
 export const InsertThisFileCommand = async (...args: any[]) => {
   if (!(args[0] instanceof vscode.Uri)) {
@@ -38,47 +31,26 @@ export const InsertThisFileCommand = async (...args: any[]) => {
     vscode.window.activeTextEditor?.selection.active.character ?? 0,
   ] as const
 
-  const spans = parseSpan(text)
+  const response = await vscode.commands.executeCommand(
+    'typescript.tsserverRequest',
+    '_insert_this_insert_into' satisfies (typeof COMMANDS)[keyof typeof COMMANDS],
+    [target.scheme === 'file' ? target.fsPath : target.toString(), ...cursor, relativePath, sanitizedName] satisfies COMMAND_ARGS['insertInto']
+  )
+  const { import: importBinding, isInJSXText, isInMissingExpr, isInString } = (response as any).body as COMMAND_RESULT['insertInto']
 
-  let res: ParseResult
-
-  try {
-    res = await parseAST(
-      text,
-      spans,
-      {
-        syntax: language?.startsWith("typescript")
-          ? "typescript"
-          : "ecmascript",
-        tsx: language === "typescriptreact",
-        jsx: language === "javascriptreact",
-        dynamicImport: true,
-      },
-      cursor
-    )
-  } catch (err: any) {
-    vscode.window.showErrorMessage(err.message)
-    return
-  }
-
-  const originalPos = getExistingImport(res, relativePath)
-  const inJSXContext =
-    (language === "typescriptreact" || language === "javascriptreact") &&
-    isInJSXContext(res, cursor)
-
-  if (originalPos != null) {
-    if (res.hasMissingExpression) {
+  if (importBinding.type === 'existing') {
+    if (isInMissingExpr) {
       await vscode.window.activeTextEditor?.insertSnippet(
         new vscode.SnippetString()
-          .appendPlaceholder(originalPos.name)
+          .appendPlaceholder(importBinding.name)
           .appendTabstop(0),
         new vscode.Position(...cursor)
       )
-    } else if (inJSXContext) {
+    } else if (isInJSXText) {
       vscode.window.activeTextEditor?.insertSnippet(
         new vscode.SnippetString()
         .appendText('<img src={')
-          .appendText(originalPos.name)
+          .appendText(importBinding.name)
           .appendText('} alt="" />')
           .appendTabstop(0),
         new vscode.Position(...cursor)
@@ -86,11 +58,11 @@ export const InsertThisFileCommand = async (...args: any[]) => {
     } else {
       vscode.window.activeTextEditor?.insertSnippet(
         new vscode.SnippetString()
-          .appendPlaceholder(originalPos.name)
+          .appendPlaceholder(importBinding.name)
           .appendTabstop(0),
         new vscode.Range(
-          new vscode.Position(...originalPos.start),
-          new vscode.Position(...originalPos.end)
+          new vscode.Position(importBinding.start.row, importBinding.start.col),
+          new vscode.Position(importBinding.end.row, importBinding.end.col)
         ),
         { undoStopBefore: false, undoStopAfter: false }
       )
@@ -98,31 +70,29 @@ export const InsertThisFileCommand = async (...args: any[]) => {
 
     return
   } else {
-    const toInsert = getImportInsertPosAndName(
-      res,
-      sanitizedName,
-      relativePath
-    )
-
     await vscode.window.activeTextEditor?.insertSnippet(
-      toInsert.snippet,
-      new vscode.Position(...toInsert.at)
+      new vscode.SnippetString()
+              .appendText("import ")
+              .appendPlaceholder(importBinding.name, 1)
+              .appendTabstop(0)
+              .appendText(` from ${JSON.stringify(importBinding.path)}\n`),
+      new vscode.Position(importBinding.start.row, importBinding.start.col)
     )
 
-    const calibratedCursor = cursor[0] > toInsert.at[0] ? cursor : [cursor[0] + 1, cursor[1]] as const
+    const calibratedCursor = cursor[0] > importBinding.start.row ? cursor : [cursor[0] + 1, cursor[1]] as const
 
-    if (res.hasMissingExpression) {
+    if (isInMissingExpr) {
       await vscode.window.activeTextEditor?.insertSnippet(
         new vscode.SnippetString()
-          .appendPlaceholder(toInsert.name)
+          .appendPlaceholder(importBinding.name)
           .appendTabstop(0),
         new vscode.Position(...calibratedCursor)
       )
-    } else if (inJSXContext) {
+    } else if (isInJSXText) {
       await vscode.window.activeTextEditor?.insertSnippet(
         new vscode.SnippetString()
         .appendText('<img src={')
-          .appendText(toInsert.name)
+          .appendText(importBinding.name)
           .appendText('} alt="" />')
           .appendTabstop(0),
         new vscode.Position(...calibratedCursor)

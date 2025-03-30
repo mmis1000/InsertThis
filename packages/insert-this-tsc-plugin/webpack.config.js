@@ -53,4 +53,4 @@ const extensionConfig = {
     // topLevelAwait: true,
   },
 };
-module.exports = [ extensionConfig ];
+module.exports = [ extensionConfig ]
