@@ -20,7 +20,7 @@ This is a extension that help you insert image resource into react project with 
 
 ## Requirements
 
-WIP
+- vscode 1.97+ for [custom typescript command capability](https://github.com/microsoft/vscode/pull/232663)
 
 ## Extension Settings
 
@@ -68,5 +68,14 @@ Add e2e and fix windows path case issue
 ### 0.0.7
 
 Add icon
+
+### 0.1.0
+
+Total rewrite with vscode Typescript Language Service extension  
+for improved memory usage and performance
+
+Support multi missing expression by using Typescript Language Service
+
+Fix tons of edge case related to JSX elements
 
 **Enjoy!**
