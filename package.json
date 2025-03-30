@@ -81,7 +81,6 @@
     "vscode.typescript-language-features"
   ],
   "dependencies": {
-    "@swc/wasm": "^1.7.26",
     "@ungap/structured-clone": "^1.3.0",
     "insert-this-tsc-plugin": "file:./packages/insert-this-tsc-plugin",
     "strip-ansi-cjs": "npm:strip-ansi@^6.0.1"
