@@ -4,7 +4,7 @@ import * as vscode from "vscode"
 import { InsertThisFileCommand } from "./commands/InsertThisFileCommand"
 import { FileNameListOnDropProvider } from "./providers/FileNameListOnDropProvider"
 
-import { serialize, deserialize } from '@ungap/structured-clone';
+import { serialize, deserialize } from '@ungap/structured-clone'
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed

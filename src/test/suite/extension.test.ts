@@ -70,6 +70,32 @@ describe("E2E", () => {
     "moduleFileExtensions": ["js"]
   }))
 
+  it("JSX", async () => {
+    const root = vscode.workspace.workspaceFolders![0].uri
+    const target = vscode.Uri.joinPath(root, "src/jsx.tsx")
+    const file = vscode.Uri.joinPath(root, "assets/test.svg")
+
+    const doc = await vscode.workspace.openTextDocument(target)
+    const editor = await vscode.window.showTextDocument(doc)
+
+    editor.selection = new vscode.Selection(
+      new vscode.Position(0, 12),
+      new vscode.Position(0, 12)
+    )
+
+    assert.equal(vscode.window.activeTextEditor?.selection.start.character, 12)
+    // await vscode.window.activeTextEditor?.document.uri
+
+    await InsertThisFileCommand(file)
+
+    expect(
+      vscode.window.activeTextEditor?.document.getText()
+    ).toMatchSnapshot()
+
+    await editor.document.save()
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+  })
+
   it("Missing expr", async () => {
     const root = vscode.workspace.workspaceFolders![0].uri
     const target = vscode.Uri.joinPath(root, "src/missing-expr.ts")
@@ -110,6 +136,58 @@ describe("E2E", () => {
     )
 
     assert.equal(vscode.window.activeTextEditor?.selection.start.character, 11)
+    // await vscode.window.activeTextEditor?.document.uri
+
+    await InsertThisFileCommand(file)
+
+    expect(
+      vscode.window.activeTextEditor?.document.getText()
+    ).toMatchSnapshot()
+
+    await editor.document.save()
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+  })
+
+  it("Missing multi", async () => {
+    const root = vscode.workspace.workspaceFolders![0].uri
+    const target = vscode.Uri.joinPath(root, "src/missing-multi-expr.ts")
+    const file = vscode.Uri.joinPath(root, "assets/test.svg")
+
+    const doc = await vscode.workspace.openTextDocument(target)
+    const editor = await vscode.window.showTextDocument(doc)
+
+    editor.selection = new vscode.Selection(
+      new vscode.Position(0, 10),
+      new vscode.Position(0, 10)
+    )
+
+    assert.equal(vscode.window.activeTextEditor?.selection.start.character, 10)
+    // await vscode.window.activeTextEditor?.document.uri
+
+    await InsertThisFileCommand(file)
+
+    expect(
+      vscode.window.activeTextEditor?.document.getText()
+    ).toMatchSnapshot()
+
+    await editor.document.save()
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+  })
+
+  it("Missing multi, location 2", async () => {
+    const root = vscode.workspace.workspaceFolders![0].uri
+    const target = vscode.Uri.joinPath(root, "src/missing-multi-expr-2.ts")
+    const file = vscode.Uri.joinPath(root, "assets/test.svg")
+
+    const doc = await vscode.workspace.openTextDocument(target)
+    const editor = await vscode.window.showTextDocument(doc)
+
+    editor.selection = new vscode.Selection(
+      new vscode.Position(1, 18),
+      new vscode.Position(1, 18)
+    )
+
+    assert.equal(vscode.window.activeTextEditor?.selection.start.character, 18)
     // await vscode.window.activeTextEditor?.document.uri
 
     await InsertThisFileCommand(file)

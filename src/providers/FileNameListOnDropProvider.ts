@@ -1,17 +1,7 @@
-import * as vscode from "vscode"
-import {
-  getExistingImport,
-  getImportInsertPosAndName,
-  isInJSXContext,
-  isInStringContext,
-  parseAST,
-  ParseResult,
-  parseSpan,
-  toPos,
-} from "../ASTUtils"
-import { getSanitizedName, relative } from "../utils"
-
-const uriListMime = "text/uri-list"
+import * as vscode from 'vscode'
+import { getSanitizedName, relative } from '../utils'
+import type { COMMANDS, COMMAND_ARGS, COMMAND_RESULT } from 'insert-this-tsc-plugin/src/commands'
+const uriListMime = 'text/uri-list'
 
 /**
  * Provider that inserts a numbered list of the names of dropped files.
@@ -46,7 +36,7 @@ export class FileNameListOnDropProvider
 
     const uris: vscode.Uri[] = []
 
-    for (const resource of urlList.split("\n")) {
+    for (const resource of urlList.split('\n')) {
       try {
         uris.push(vscode.Uri.parse(resource))
       } catch {
@@ -65,12 +55,11 @@ export class FileNameListOnDropProvider
     const uri = uris[0]
 
     const target = vscode.window.activeTextEditor?.document.uri!
-    const language = vscode.window.activeTextEditor?.document.languageId
 
     let relativePath = relative(target, uri)
 
-    if (!relativePath.startsWith(".")) {
-      relativePath = "./" + relativePath
+    if (!relativePath.startsWith('.')) {
+      relativePath = './' + relativePath
     }
     const sanitizedName = getSanitizedName(uri.path)
 
@@ -81,102 +70,66 @@ export class FileNameListOnDropProvider
 
     const cursor = [position.line, position.character] as const
 
-    const spans = parseSpan(text)
+    const response = await vscode.commands.executeCommand(
+      'typescript.tsserverRequest',
+      '_insert_this_insert_into' satisfies (typeof COMMANDS)[keyof typeof COMMANDS],
+      [target.scheme === 'file' ? target.fsPath : target.toString(), ...cursor, relativePath, sanitizedName] satisfies COMMAND_ARGS['insertInto']
+    )
 
-    let res: ParseResult
-
-    try {
-      res = await parseAST(
-        text,
-        spans,
-        {
-          syntax: language?.startsWith("typescript")
-            ? "typescript"
-            : "ecmascript",
-          tsx: language === "typescriptreact",
-          jsx: language === "javascriptreact",
-          dynamicImport: true,
-        },
-        cursor
-      )
-    } catch (err: any) {
-      vscode.window.showErrorMessage(err.message)
-      const snippet = new vscode.SnippetString()
-      return new vscode.DocumentDropEdit(snippet)
-    }
-
-    if (token.isCancellationRequested) {
-      return
-    }
-
-    const existingImport = getExistingImport(res, relativePath)
-
-    const toInsert =
-      existingImport != null
-        ? null
-        : getImportInsertPosAndName(res, sanitizedName, relativePath)
-
-    const inJSXContext =
-      (language === "typescriptreact" || language === "javascriptreact") &&
-      isInJSXContext(res, toPos(position))
-
-    const inStringContext = isInStringContext(res, position)
+    const { import: importBinding, isInJSXText, isInMissingExpr, isInString } = (response as any).body as COMMAND_RESULT['insertInto']
 
     vscode.window.activeTextEditor?.edit((builder) => {
-      if (inJSXContext) {
-        if (toInsert) {
+      if (isInJSXText) {
+        if (importBinding.type === 'new') {
           builder.insert(
             new vscode.Position(position.line, position.character),
-            `<img src={${toInsert.name}} alt="" />`
+            `<img src={${importBinding.name}} alt="" />`
           )
-          builder.insert(new vscode.Position(...toInsert.at), toInsert.content)
-        }
-        if (existingImport) {
+          builder.insert(new vscode.Position(importBinding.start.row, importBinding.start.col), importBinding.contentToInsert)
+        }else {
           builder.insert(
             new vscode.Position(position.line, position.character),
-            `<img src={${existingImport.name}} alt="" />`
+            `<img src={${importBinding.name}} alt="" />`
           )
         }
       } else {
-        if (res.hasMissingExpression) {
+        if (isInMissingExpr) {
           // insert variable name instead
-          if (toInsert) {
+          if (importBinding.type === 'new') {
             builder.insert(
               new vscode.Position(position.line, position.character),
-              toInsert.name
+              importBinding.name
             )
             builder.insert(
-              new vscode.Position(...toInsert.at),
-              toInsert.content
+              new vscode.Position(importBinding.start.row, importBinding.start.col),
+              importBinding.contentToInsert
             )
-          }
-          if (existingImport) {
+          } else {
             builder.insert(
               new vscode.Position(position.line, position.character),
-              existingImport.name
+              importBinding.name
             )
           }
-        } else if (inStringContext) {
+        } else if (isInString) {
           // assume we want a string because we are somehow in a string
           builder.insert(
             new vscode.Position(position.line, position.character),
             relativePath
           )
         } else {
-          if (toInsert) {
+          if (importBinding.type === 'new') {
             builder.insert(
               new vscode.Position(position.line, position.character),
-              toInsert.name
+              importBinding.name
             )
             builder.insert(
-              new vscode.Position(...toInsert.at),
-              toInsert.content
+              new vscode.Position(importBinding.start.row, importBinding.start.col),
+              importBinding.contentToInsert
             )
-          }
-          if (existingImport) {
+          } else {
             builder.insert(
               new vscode.Position(position.line, position.character),
-              existingImport.name
+              importBinding.name
             )
           }
         }
