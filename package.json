@@ -69,6 +69,114 @@
           "command": "insert-this.insertThisFile"
         }
       ]
+    },
+    "configuration": {
+      "title": "Insert This",
+      "properties": {
+        "insertThis.importTemplateStringByFileExtension": {
+          "type": "object",
+          "order": 2,
+          "default": {
+            "*": "import ${1:$VARIABLE_NAME}$0 from $SERIALIZED_FILE_NAME",
+            "[svg][jpg][jpeg][png][gif][webp]": "import ${1:$VARIABLE_NAME}$0 from $SERIALIZED_FILE_NAME"
+          },
+          "description": "import string by file extension",
+          "$comment": "setting for well known image types",
+          "properties": {},
+          "patternProperties": {
+            "^\\*$|^(\\[[^\\[\\]]*\\])+$": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "*"
+          ],
+          "additionalProperties": false
+        },
+        "insertThis.jsxTemplateStringByFileExtension": {
+          "type": "object",
+          "order": 11,
+          "default": {
+            "*": "<img src={$VARIABLE_NAME} alt=\"\" />",
+            "[svg][jpg][jpeg][png][gif][webp]": "<img src={$VARIABLE_NAME} alt=\"\" />",
+            "[mp4]": "<video src={$VARIABLE_NAME} />",
+            "[ts][tsx][js][jsx][mts][mtsx][mjs][mjsx][cts][ctsx][cjs][cjsx]": "<$VARIABLE_NAME></$VARIABLE_NAME>"
+          },
+          "description": "template when insert string into JSX element by file extension",
+          "$comment": "setting for well known image types",
+          "properties": {},
+          "patternProperties": {
+            "^\\*$|^(\\[[^\\[\\]]*\\])+$": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "*"
+          ],
+          "additionalProperties": false
+        },
+        "insertThis.jsxTemplateStringWithImageSizeByFileExtension": {
+          "type": "object",
+          "order": 11,
+          "default": {
+            "[svg][jpg][jpeg][png][gif][webp]": "<img src={$VARIABLE_NAME} width=\"$IMAGE_WIDTH\" height=\"$IMAGE_HEIGHT\" alt=\"\" />"
+          },
+          "description": "template when insert image with size into JSX element by file extension",
+          "$comment": "setting for well known image types",
+          "properties": {},
+          "patternProperties": {
+            "^\\*$|^(\\[[^\\[\\]]*\\])+$": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "insertThis.variableSuffixByFileExtension": {
+          "type": "object",
+          "order": 21,
+          "default": {
+            "*": "",
+            "[svg][jpg][jpeg][png][gif][webp]": "img",
+            "[mp4]": "video"
+          },
+          "description": "suffix when add import by file extension, for example `fileName[Img]`",
+          "$comment": "setting for well known image types",
+          "properties": {},
+          "patternProperties": {
+            "^\\*$|^(\\[[^\\[\\]]*\\])+$": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "*"
+          ],
+          "additionalProperties": false
+        },
+        "insertThis.variableNameRuleByFileExtension": {
+          "type": "object",
+          "order": 22,
+          "$comment": "setting default for well known js files",
+          "default": {
+            "*": "camel",
+            "[ts][tsx][js][jsx][mts][mtsx][mjs][mjsx][cts][ctsx][cjs][cjsx]": "pascal"
+          },
+          "description": "naming rule for generated variable, either camel or pascal`",
+          "properties": {},
+          "patternProperties": {
+            "^\\*$|^(\\[[^\\[\\]]*\\])+$": {
+              "type": "string",
+              "enum": [
+                "camel",
+                "pascal"
+              ]
+            }
+          },
+          "required": [
+            "*"
+          ],
+          "additionalProperties": false
+        }
+      }
     }
   },
   "activationEvents": [
@@ -82,6 +190,7 @@
   ],
   "dependencies": {
     "@ungap/structured-clone": "^1.3.0",
+    "image-size": "^2.0.1",
     "insert-this-tsc-plugin": "file:./packages/insert-this-tsc-plugin",
     "strip-ansi-cjs": "npm:strip-ansi@^6.0.1"
   },

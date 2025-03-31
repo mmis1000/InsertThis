@@ -1,10 +1,19 @@
 import * as vscode from 'vscode'
-import { getSanitizedName, relative } from '../utils'
+import {
+  getExtension,
+  getFileName,
+  getSanitizedName,
+  readConfig,
+  relative,
+  replaceVariables
+} from '../utils'
 import type {
   COMMANDS,
   COMMAND_ARGS,
   COMMAND_RESULT
 } from 'insert-this-tsc-plugin/src/commands'
+import { SNIPPET_VARIABLES } from '../constants'
+import imageSize from 'image-size'
 
 export const InsertThisFileCommand = async (...args: any[]) => {
   if (!(args[0] instanceof vscode.Uri)) {
@@ -20,7 +29,43 @@ export const InsertThisFileCommand = async (...args: any[]) => {
     relativePath = './' + relativePath
   }
 
-  const sanitizedName = getSanitizedName(sourcePath.path)
+  const ext = getExtension(sourcePath.path)
+  const {
+    importTemplate,
+    jsxTemplate,
+    jsxTemplateWithSize,
+    variableSuffix,
+    variableNameRule
+  } = readConfig(ext)
+  const sanitizedName = getSanitizedName(
+    sourcePath.path,
+    variableSuffix,
+    variableNameRule
+  )
+
+  let size: [number, number] | undefined = undefined
+
+  if (jsxTemplateWithSize != null) {
+    try {
+      const file = await vscode.workspace.fs.readFile(sourcePath)
+      const res = imageSize(file)
+      const filename = getFileName(sourcePath.path)
+
+      let dpi = 1
+      if (filename.match(/@\d+$/)) {
+        const size = parseInt(filename.match(/@\d+$/)![0].slice(1), 10)
+        if (size != 0) {
+          dpi = size
+        }
+      }
+
+      if (res.width != 0 && res.height != 0) {
+        size = [res.width / dpi, res.height / dpi]
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   // console.log(vscode.window.activeTextEditor?.document.fileName)
   const text = vscode.window.activeTextEditor?.document.getText()
@@ -51,89 +96,94 @@ export const InsertThisFileCommand = async (...args: any[]) => {
     import: importBinding,
     isInJSXText,
     isInMissingExpr,
-    isInString
   } = (response as any).body as COMMAND_RESULT['insertInto']
+
+  const importStatement = replaceVariables(importTemplate, {
+    [SNIPPET_VARIABLES.VARIABLE_NAME]: importBinding.name,
+    [SNIPPET_VARIABLES.SERIALIZED_FILE_NAME]: JSON.stringify(importBinding.path)
+  })
+
+  const jsxExpr =
+    size != null && jsxTemplateWithSize != null
+      ? replaceVariables(jsxTemplateWithSize, {
+          [SNIPPET_VARIABLES.VARIABLE_NAME]: importBinding.name,
+          [SNIPPET_VARIABLES.IMAGE_WIDTH]: String(size[0]),
+          [SNIPPET_VARIABLES.IMAGE_HEIGHT]: String(size[1])
+        })
+      : replaceVariables(jsxTemplate, {
+          [SNIPPET_VARIABLES.VARIABLE_NAME]: importBinding.name
+        })
+
+  const workspaceEdit = new vscode.WorkspaceEdit()
+  const snippetTextEdits: vscode.SnippetTextEdit[] = []
 
   if (importBinding.type === 'existing') {
     if (isInMissingExpr) {
-      await vscode.window.activeTextEditor?.insertSnippet(
-        new vscode.SnippetString()
-          .appendPlaceholder(importBinding.name)
-          .appendTabstop(0),
-        new vscode.Position(...cursor)
+      snippetTextEdits.push(
+        vscode.SnippetTextEdit.insert(
+          new vscode.Position(...cursor),
+          new vscode.SnippetString()
+            .appendPlaceholder(importBinding.name)
+            .appendTabstop(0)
+        )
       )
     } else if (isInJSXText) {
-      vscode.window.activeTextEditor?.insertSnippet(
-        new vscode.SnippetString()
-          .appendText('<img src={')
-          .appendText(importBinding.name)
-          .appendText('} alt="" />')
-          .appendTabstop(0),
-        new vscode.Position(...cursor)
+      snippetTextEdits.push(
+        vscode.SnippetTextEdit.insert(
+          new vscode.Position(...cursor),
+          new vscode.SnippetString(jsxExpr)
+        )
       )
     } else {
-      vscode.window.activeTextEditor?.insertSnippet(
-        new vscode.SnippetString()
-          .appendPlaceholder(importBinding.name)
-          .appendTabstop(0),
-        new vscode.Range(
-          new vscode.Position(importBinding.start.row, importBinding.start.col),
-          new vscode.Position(importBinding.end.row, importBinding.end.col)
+      snippetTextEdits.push(
+        vscode.SnippetTextEdit.replace(
+          new vscode.Range(
+            new vscode.Position(
+              importBinding.start.row,
+              importBinding.start.col
+            ),
+            new vscode.Position(importBinding.end.row, importBinding.end.col)
+          ),
+          new vscode.SnippetString()
+            .appendPlaceholder(importBinding.name)
+            .appendTabstop(0)
         )
       )
     }
-
-    return
   } else {
-    await vscode.window.activeTextEditor?.insertSnippet(
-      new vscode.SnippetString()
-        .appendText(importBinding.lineBreakAtEnd ? 'import ' : '\nimport ')
-        .appendPlaceholder(importBinding.name, 1)
-        .appendTabstop(0)
-        .appendText(` from ${JSON.stringify(importBinding.path)}`)
-        .appendText(importBinding.lineBreakAtEnd ? '\n' : ''),
-      new vscode.Position(importBinding.start.row, importBinding.start.col),
-      {
-        undoStopBefore: true,
-        undoStopAfter: false
-      }
+    snippetTextEdits.push(
+      vscode.SnippetTextEdit.insert(
+        new vscode.Position(importBinding.start.row, importBinding.start.col),
+        new vscode.SnippetString(
+          importBinding.lineBreakAtEnd
+            ? importStatement + '\n'
+            : '\n' + importStatement
+        )
+      )
     )
 
-    const willBePushedOut =
-      cursor[0] >=
-      (!importBinding.lineBreakAtEnd
-        ? importBinding.start.row + 1
-        : importBinding.start.row)
-    const calibratedCursor = willBePushedOut
-      ? ([cursor[0] + 1, cursor[1]] as const)
-      : cursor
-
     if (isInMissingExpr) {
-      await vscode.window.activeTextEditor?.insertSnippet(
-        new vscode.SnippetString()
-          .appendPlaceholder(importBinding.name)
-          .appendTabstop(0),
-        new vscode.Position(...calibratedCursor),
-        {
-          undoStopBefore: false,
-          undoStopAfter: true
-        }
+      snippetTextEdits.push(
+        vscode.SnippetTextEdit.insert(
+          new vscode.Position(...cursor),
+          new vscode.SnippetString()
+            .appendPlaceholder(importBinding.name)
+            .appendTabstop(0)
+        )
       )
     } else if (isInJSXText) {
-      await vscode.window.activeTextEditor?.insertSnippet(
-        new vscode.SnippetString()
-          .appendText('<img src={')
-          .appendText(importBinding.name)
-          .appendText('} alt="" />')
-          .appendTabstop(0),
-        new vscode.Position(...calibratedCursor),
-        {
-          undoStopBefore: false,
-          undoStopAfter: true
-        }
+      snippetTextEdits.push(
+        vscode.SnippetTextEdit.insert(
+          new vscode.Position(...cursor),
+          new vscode.SnippetString(jsxExpr)
+        )
       )
     }
   }
+
+  workspaceEdit.set(target, snippetTextEdits)
+
+  await vscode.workspace.applyEdit(workspaceEdit)
 
   return
 

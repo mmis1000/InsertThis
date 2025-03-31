@@ -62,7 +62,6 @@ type ExistingImport = {
 type NewImport = {
   type: 'new'
   start: Pos
-  contentToInsert: string
   name: string
   path: string
   lineBreakAtEnd: boolean
@@ -140,7 +139,6 @@ export const getExistingOrCreateNewImport = (
           return {
             type: 'new',
             start: target,
-            contentToInsert: text,
             name: selectedName,
             path: filePath,
             lineBreakAtEnd: false
@@ -155,7 +153,6 @@ export const getExistingOrCreateNewImport = (
               row: 0,
               col: 0
             },
-            contentToInsert: text,
             name: selectedName,
             path: filePath,
             lineBreakAtEnd: true,
@@ -193,7 +190,6 @@ export const getExistingOrCreateNewImport = (
       return {
         type: 'new',
         start: target,
-        contentToInsert: text,
         name: selectedName,
         path: filePath,
         lineBreakAtEnd: false,
@@ -206,7 +202,6 @@ export const getExistingOrCreateNewImport = (
           row: 0,
           col: 0
         },
-        contentToInsert: text,
         name: selectedName,
         path: filePath,
         lineBreakAtEnd: true,
@@ -214,5 +209,4 @@ export const getExistingOrCreateNewImport = (
       // insert at front
     }
   }
-
 }
