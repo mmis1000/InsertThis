@@ -77,8 +77,8 @@
           "type": "object",
           "order": 2,
           "default": {
-            "*": "import ${1:$VARIABLE_NAME}$0 from $SERIALIZED_FILE_NAME",
-            "[svg][jpg][jpeg][png][gif][webp]": "import ${1:$VARIABLE_NAME}$0 from $SERIALIZED_FILE_NAME"
+            "*": "import ${1:$VARIABLE_NAME} from $SERIALIZED_FILE_NAME",
+            "[svg][jpg][jpeg][png][gif][webp]": "import ${1:$VARIABLE_NAME} from $SERIALIZED_FILE_NAME"
           },
           "description": "import string by file extension",
           "$comment": "setting for well known image types",
@@ -97,10 +97,10 @@
           "type": "object",
           "order": 11,
           "default": {
-            "*": "<img src={$VARIABLE_NAME} alt=\"\" />",
-            "[svg][jpg][jpeg][png][gif][webp]": "<img src={$VARIABLE_NAME} alt=\"\" />",
-            "[mp4]": "<video src={$VARIABLE_NAME} />",
-            "[ts][tsx][js][jsx][mts][mtsx][mjs][mjsx][cts][ctsx][cjs][cjsx]": "<$VARIABLE_NAME></$VARIABLE_NAME>"
+            "*": "<img src={${1:$VARIABLE_NAME}} alt=\"\" />$0",
+            "[svg][jpg][jpeg][png][gif][webp]": "<img src={${1:$VARIABLE_NAME}} alt=\"\" />$0",
+            "[mp4]": "<video src={${1:$VARIABLE_NAME}} />$0",
+            "[ts][tsx][js][jsx][mts][mtsx][mjs][mjsx][cts][ctsx][cjs][cjsx]": "<${1:$VARIABLE_NAME}></${1:$VARIABLE_NAME}>$0"
           },
           "description": "template when insert string into JSX element by file extension",
           "$comment": "setting for well known image types",

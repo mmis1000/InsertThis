@@ -95,7 +95,7 @@ export const InsertThisFileCommand = async (...args: any[]) => {
   const {
     import: importBinding,
     isInJSXText,
-    isInMissingExpr,
+    isInMissingExpr
   } = (response as any).body as COMMAND_RESULT['insertInto']
 
   const importStatement = replaceVariables(importTemplate, {
@@ -184,8 +184,8 @@ export const InsertThisFileCommand = async (...args: any[]) => {
   workspaceEdit.set(target, snippetTextEdits)
 
   await vscode.workspace.applyEdit(workspaceEdit)
-
+  await vscode.commands.executeCommand(
+    'workbench.action.focusActiveEditorGroup'
+  )
   return
-
-  // console.log(text, res, spans, lineCols)
 }

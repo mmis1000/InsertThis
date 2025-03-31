@@ -70,7 +70,13 @@ export class FileNameListOnDropProvider
 
     const ext = getExtension(uri.path)
 
-    const { importTemplate, jsxTemplate, jsxTemplateWithSize, variableSuffix, variableNameRule } = readConfig(ext)
+    const {
+      importTemplate,
+      jsxTemplate,
+      jsxTemplateWithSize,
+      variableSuffix,
+      variableNameRule
+    } = readConfig(ext)
 
     const target = document.uri
     let size: [number, number] | undefined = undefined
@@ -102,7 +108,11 @@ export class FileNameListOnDropProvider
     if (!relativePath.startsWith('.')) {
       relativePath = './' + relativePath
     }
-    const sanitizedName = getSanitizedName(uri.path, variableSuffix, variableNameRule)
+    const sanitizedName = getSanitizedName(
+      uri.path,
+      variableSuffix,
+      variableNameRule
+    )
 
     const text = vscode.window.activeTextEditor?.document.getText()
 
@@ -202,7 +212,9 @@ export class FileNameListOnDropProvider
         snippetTextEdits.push(
           vscode.SnippetTextEdit.insert(
             new vscode.Position(position.line, position.character),
-            new vscode.SnippetString(importBinding.name)
+            new vscode.SnippetString()
+              .appendPlaceholder(importBinding.name)
+              .appendTabstop(0)
           )
         )
       } else if (isInString) {
@@ -232,12 +244,14 @@ export class FileNameListOnDropProvider
         snippetTextEdits.push(
           vscode.SnippetTextEdit.insert(
             new vscode.Position(position.line, position.character),
-            new vscode.SnippetString(importBinding.name)
+            new vscode.SnippetString()
+              .appendPlaceholder(importBinding.name)
+              .appendTabstop(0)
           )
         )
       }
     }
-    console.log(snippetTextEdits)
+
     workspaceEdit.set(target, snippetTextEdits)
 
     dropEdit.additionalEdit = workspaceEdit
