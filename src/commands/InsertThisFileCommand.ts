@@ -79,8 +79,7 @@ export const InsertThisFileCommand = async (...args: any[]) => {
         new vscode.Range(
           new vscode.Position(importBinding.start.row, importBinding.start.col),
           new vscode.Position(importBinding.end.row, importBinding.end.col)
-        ),
-        { undoStopBefore: false, undoStopAfter: false }
+        )
       )
     }
 
@@ -93,7 +92,11 @@ export const InsertThisFileCommand = async (...args: any[]) => {
         .appendTabstop(0)
         .appendText(` from ${JSON.stringify(importBinding.path)}`)
         .appendText(importBinding.lineBreakAtEnd ? '\n' : ''),
-      new vscode.Position(importBinding.start.row, importBinding.start.col)
+      new vscode.Position(importBinding.start.row, importBinding.start.col),
+      {
+        undoStopBefore: true,
+        undoStopAfter: false
+      }
     )
 
     const willBePushedOut =
@@ -110,7 +113,11 @@ export const InsertThisFileCommand = async (...args: any[]) => {
         new vscode.SnippetString()
           .appendPlaceholder(importBinding.name)
           .appendTabstop(0),
-        new vscode.Position(...calibratedCursor)
+        new vscode.Position(...calibratedCursor),
+        {
+          undoStopBefore: false,
+          undoStopAfter: true
+        }
       )
     } else if (isInJSXText) {
       await vscode.window.activeTextEditor?.insertSnippet(
@@ -119,7 +126,11 @@ export const InsertThisFileCommand = async (...args: any[]) => {
           .appendText(importBinding.name)
           .appendText('} alt="" />')
           .appendTabstop(0),
-        new vscode.Position(...calibratedCursor)
+        new vscode.Position(...calibratedCursor),
+        {
+          undoStopBefore: false,
+          undoStopAfter: true
+        }
       )
     }
   }
