@@ -96,6 +96,58 @@ describe("E2E", () => {
     await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
   })
 
+  it("JSX with image size", async () => {
+    const root = vscode.workspace.workspaceFolders![0].uri
+    const target = vscode.Uri.joinPath(root, "src/img-import-with-size.tsx")
+    const file = vscode.Uri.joinPath(root, "assets/test.png")
+
+    const doc = await vscode.workspace.openTextDocument(target)
+    const editor = await vscode.window.showTextDocument(doc)
+
+    editor.selection = new vscode.Selection(
+      new vscode.Position(0, 12),
+      new vscode.Position(0, 12)
+    )
+
+    assert.equal(vscode.window.activeTextEditor?.selection.start.character, 12)
+    // await vscode.window.activeTextEditor?.document.uri
+
+    await InsertThisFileCommand(file)
+
+    expect(
+      vscode.window.activeTextEditor?.document.getText()
+    ).toMatchSnapshot()
+
+    await editor.document.save()
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+  })
+
+  it("JSX with image size and dpi", async () => {
+    const root = vscode.workspace.workspaceFolders![0].uri
+    const target = vscode.Uri.joinPath(root, "src/img-import-with-size-and-dpi.tsx")
+    const file = vscode.Uri.joinPath(root, "assets/test@2.png")
+
+    const doc = await vscode.workspace.openTextDocument(target)
+    const editor = await vscode.window.showTextDocument(doc)
+
+    editor.selection = new vscode.Selection(
+      new vscode.Position(0, 12),
+      new vscode.Position(0, 12)
+    )
+
+    assert.equal(vscode.window.activeTextEditor?.selection.start.character, 12)
+    // await vscode.window.activeTextEditor?.document.uri
+
+    await InsertThisFileCommand(file)
+
+    expect(
+      vscode.window.activeTextEditor?.document.getText()
+    ).toMatchSnapshot()
+
+    await editor.document.save()
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+  })
+
   it("Missing expr", async () => {
     const root = vscode.workspace.workspaceFolders![0].uri
     const target = vscode.Uri.joinPath(root, "src/missing-expr.ts")
