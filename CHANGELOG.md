@@ -41,3 +41,9 @@ All notable changes to the "insert-this" extension will be documented in this fi
 ## [0.1.1]
 
 - Log clean up
+
+## [0.1.2]
+
+- Add configurations for configure jsx tag output
+- Add configurations for configure variable postfix
+- Add configurations for configure variable naming convention

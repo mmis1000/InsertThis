@@ -24,7 +24,16 @@ This is a extension that help you insert image resource into react project with 
 
 ## Extension Settings
 
-WIP
+1. `insertThis.jsxTemplateStringByFileExtension`
+    - template when insert string into JSX element by file extension
+2. `insertThis.jsxTemplateStringWithImageSizeByFileExtension`
+    - template when insert image with size into JSX element by file extension
+3. `insertThis.variableSuffixByFileExtension`
+    - suffix when add import by file extension, for example fileName**Img**
+4. `insertThis.variableNameRuleByFileExtension`
+    - naming rule for generated variable name, either camel or pascal
+      - import **a**pp from 'test.css'
+      - import **A**pp from 'comp.tsx'
 
 <!-- Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
@@ -77,5 +86,13 @@ Fix tons of edge case related to JSX elements
 ### 0.1.1
 
 Log clean up
+
+### 0.1.2
+
+Add configurations for configure jsx tag output
+
+Add configurations for configure variable postfix
+
+Add configurations for configure variable naming convention
 
 **Enjoy!**

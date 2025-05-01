@@ -140,7 +140,7 @@
             "*": "camel",
             "[ts][tsx][js][jsx][mts][mtsx][mjs][mjsx][cts][ctsx][cjs][cjsx]": "pascal"
           },
-          "description": "naming rule for generated variable, either camel or pascal`",
+          "description": "naming rule for generated variable, either camel or pascal",
           "properties": {},
           "patternProperties": {
             "^\\*$|^(\\[[^\\[\\]]*\\])+$": {
