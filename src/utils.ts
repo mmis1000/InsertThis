@@ -125,9 +125,6 @@ export const replaceVariables = (
 
 export const readConfig = (ext: string) => {
   const config = workspace.getConfiguration('insertThis')
-  const importTemplates = config.get(
-    'importTemplateStringByFileExtension'
-  ) as Record<string, string>
   const jsxTemplates = config.get('jsxTemplateStringByFileExtension') as Record<
     string,
     string
@@ -143,7 +140,7 @@ export const readConfig = (ext: string) => {
   ) as Record<string, string>
 
 
-  const importTemplate = getWithExtension(importTemplates, ext)
+  const importTemplate = "import ${1:$VARIABLE_NAME} from $SERIALIZED_FILE_NAME"
   const jsxTemplate = getWithExtension(jsxTemplates, ext)
   const jsxTemplateWithSize = getWithExtension(jsxTemplateWithSizes, ext)
   const variableSuffix = getWithExtension(variableSuffixes, ext)

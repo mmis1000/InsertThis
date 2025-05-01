@@ -73,26 +73,6 @@
     "configuration": {
       "title": "Insert This",
       "properties": {
-        "insertThis.importTemplateStringByFileExtension": {
-          "type": "object",
-          "order": 2,
-          "default": {
-            "*": "import ${1:$VARIABLE_NAME} from $SERIALIZED_FILE_NAME",
-            "[svg][jpg][jpeg][png][gif][webp]": "import ${1:$VARIABLE_NAME} from $SERIALIZED_FILE_NAME"
-          },
-          "description": "import string by file extension",
-          "$comment": "setting for well known image types",
-          "properties": {},
-          "patternProperties": {
-            "^\\*$|^(\\[[^\\[\\]]*\\])+$": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "*"
-          ],
-          "additionalProperties": false
-        },
         "insertThis.jsxTemplateStringByFileExtension": {
           "type": "object",
           "order": 11,
